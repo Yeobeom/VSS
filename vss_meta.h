@@ -1,0 +1,117 @@
+#ifndef VSS_META_H
+#define  VSS_META_H
+
+#include <windows.h>
+#include <winioctl.h>
+#include <fileapi.h>
+#include <vector>
+#include <bitset>
+#include <stdio.h>
+#include <strsafe.h>
+
+#define CAPACITY_SIZE_UNIT 1024
+#define VSS_HEADER_OFFSET   0x1e00
+
+const static BYTE VSS_IDENFIER[16] = {0x6B,0x87,0x08,0x38,0x76,0xC1,0x48,0x4E,0xB7,0xAE,0x04,0x04,0x6E,0x6C,0xC7,0x52};
+const static BYTE STORE_GUID[16] = { 0x45, 0x7D, 0xDE, 0xE5, 0xF2 ,0x49 ,0xA4 ,0x40 ,0x81 ,0x7C ,0x7D ,0xC8 ,0x2B ,0x72 ,0x58 ,0x7F };
+
+typedef struct _VSS_VOLUME_HEADER {
+    FILE_ID_128 VSS_ID;
+    DWORD32 VERSION;
+    DWORD32 RECORD_TYPE;
+    DWORD64 CURRENT_OFFSET;
+    DWORD64 UNKNOWN1;
+    DWORD64 UNKNOWN2;
+    DWORD64 CATALOG_OFFSET;
+    DWORD64 MAXIMUM_SIZE;
+    FILE_ID_128 VOLUME_IDENTIFIER;
+    FILE_ID_128 SHADOW_COPY_STORAGE_VOLUME_IDENTIFIER;
+    DWORD32 UNKNOWN3;
+    BYTE UNKNOWN_EMPTY[412];
+}VSS_VOLUME_HEADER;
+
+typedef struct _CATALOG_BLOCK_HEADER {
+    FILE_ID_128 VSS_ID;
+    DWORD32     VERSION;
+    DWORD32     RECORD_TYPE;
+    DWORD64     RELATIVE_CATALOG_OFFSET;
+    DWORD64     CURRENT_CATALOG_OFFSET;
+    DWORD64     NEXT_CATALOG_OFFSET;
+    BYTE        UNKNOWN_EMPTY[80];
+}CATALOG_HEADER;
+
+typedef struct _CATALOG_ENTRY_0X00 {
+    DWORD64 CATALOG_ENTRY_TYPE;
+    BYTE    UNKNOWN[120];
+}CATALOG_ENTRY_0X00;
+
+typedef struct _CATALOG_ENTRY_0X01 {
+    DWORD64 CATALOG_ENTRY_TYPE;
+    BYTE    UNKNOWN[120];
+}CATALOG_ENTRY_0X01;
+
+typedef struct _CATALOG_ENTRY_0X02 {
+    DWORD64 CATALOG_ENTRY_TYPE;
+    DWORD64 VOLUME_SIZE;
+    FILE_ID_128    STORE_GUID;
+    DWORD64 SEQUENCE_NUMBER;
+    DWORD64 UNKNOWN_FLAGS;
+    DWORD64 SHADOW_COPY_CREATION;
+    BYTE    UNKNOWN_EMPTY[72];
+}CATALOG_ENTRY_0X02;
+
+typedef struct _CATALOG_ENTRY_0X03 {
+    DWORD64         CATALOG_ENTRY_TYPE;
+    DWORD64         STORE_BLOCK_LIST_OFFSET;
+    FILE_ID_128     STORE_GUID;
+    DWORD64         STORE_HEADER_OFFSET;
+    DWORD64         STORE_BLOCK_RANGE_OFFSET;
+    DWORD64         STORE_CURRENT_BITMAP_OFFSET;
+    DWORD64         NTFS_FILE_REFERENCE;
+    DWORD64         ALLOCATED_SIZE;
+    DWORD64         STORE_PREVIOUS_BITMAP_OFFSET;
+    DWORD64         UNKNOWN;
+    BYTE            UNKNOWN_EMPTY[40];
+}CATALOG_ENTRY_0X03;
+
+typedef struct _CATALOG_BLOCK {
+    CATALOG_HEADER  CATALOG_HEADER;
+    CATALOG_ENTRY_0X03  CATALOG_ENTRIES[127];
+}CATALOG_BLOCK;
+
+typedef struct _SECTOR_BLOCK {
+    BYTE            IDENTIFER[512];
+}SECTOR_BLOCK;
+
+typedef struct _CATALOG_BUF {
+    SECTOR_BLOCK    CATALOG_BLOCK[32];
+}CATALOG_BUF;
+
+typedef struct _STORE_HEADER {
+    FILE_ID_128 VSS_ID;
+    BYTE        UNKNOWN[112];
+    FILE_ID_128 GUID;
+    BYTE        UNKNOWN2[368];
+}STORE_HEADER;
+
+BOOL ReadFromDrive(HANDLE* hDevice,LARGE_INTEGER offset);
+BOOL FindDriveOffset(HANDLE* hDevice);
+BOOL FindPartitionOffsets (HANDLE* hDevice);
+BOOL GetCDriveStartingOffset(HANDLE* hDevice, LARGE_INTEGER* offset);
+BOOL ShowDrvieGeometry(DISK_GEOMETRY* pdg, LPCWSTR wszDrive);
+BOOL GetDriveGeometry(HANDLE* hDevice, DISK_GEOMETRY* pdg);
+BOOL GetVolumeDiskExtents(LPCWSTR VolumeName);
+
+BOOL ReadVSSHeader(HANDLE* hDevice, VSS_VOLUME_HEADER* vssVolumeHeader, LARGE_INTEGER partitionOffset, DWORD bytesPerSector = 512);
+BOOL SaveVSSHeader(VSS_VOLUME_HEADER* vssVolumeHeader, LPCWSTR filePath);
+BOOL LoadVSSHeader(VSS_VOLUME_HEADER* vssVolumeHeader, LPCWSTR filePath);
+
+BOOL ReadCatalogBlock(HANDLE* hDrive, CATALOG_BLOCK* catalogBlock, LARGE_INTEGER catalogOffset, DWORD bytesPerSector = 512);
+BOOL SaveCatalogBlocks(HANDLE* hDrive, LARGE_INTEGER startingCatalogOffset, WCHAR driveLabel, LARGE_INTEGER startingOffset);
+BOOL LoadCatalogBlock(CATALOG_BLOCK* catalogBlock, LPCWSTR path);
+BOOL LoadCatalogBlock(CATALOG_BLOCK* catalogBlock, LPCWSTR path);
+BOOL WriteCatalogBlock(HANDLE* hDrive, CATALOG_BLOCK* catalogBlock);
+
+BOOL SaveVSSMetaData();
+
+#endif

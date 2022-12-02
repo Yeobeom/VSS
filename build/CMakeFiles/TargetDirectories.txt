@@ -1,0 +1,9 @@
+C:/Users/bangg/Desktop/VSS/build/CMakeFiles/Experimental.dir
+C:/Users/bangg/Desktop/VSS/build/CMakeFiles/Nightly.dir
+C:/Users/bangg/Desktop/VSS/build/CMakeFiles/Continuous.dir
+C:/Users/bangg/Desktop/VSS/build/CMakeFiles/NightlyMemoryCheck.dir
+C:/Users/bangg/Desktop/VSS/build/CMakeFiles/VSS_BACKUP.dir
+C:/Users/bangg/Desktop/VSS/build/CMakeFiles/PACKAGE.dir
+C:/Users/bangg/Desktop/VSS/build/CMakeFiles/RUN_TESTS.dir
+C:/Users/bangg/Desktop/VSS/build/CMakeFiles/ALL_BUILD.dir
+C:/Users/bangg/Desktop/VSS/build/CMakeFiles/ZERO_CHECK.dir
